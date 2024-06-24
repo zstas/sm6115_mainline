@@ -442,6 +442,10 @@
 	status = "okay";
 };
 
+&usb_qmpphy {
+	status = "okay";
+};
+
 &wifi {
 	status = "okay";
 };
