@@ -442,6 +442,10 @@
 	status = "okay";
 };
 
+&wifi {
+	status = "okay";
+};
+
 &xo_board {
 	clock-frequency = <19200000>;
 };
