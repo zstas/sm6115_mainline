@@ -438,6 +438,7 @@
 };
 
 &wifi {
+	vdd-supply = <&pm6125_l4a>;
 	status = "okay";
 };
 
