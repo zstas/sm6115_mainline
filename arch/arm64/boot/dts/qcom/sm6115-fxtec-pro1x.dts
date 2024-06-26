@@ -161,6 +161,9 @@
 		reg = <0x14>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&ts_int_n>, <&ts_rst_n>;
+		pinctrl-1 = <&ts_npl_n>, <&ts_rst_n>;
+		pinctrl-2 = <&ts_pdn_n>, <&ts_pdn_n>;
+		pinctrl-3 = <&ts_pdn_n>, <&ts_rst_n>;
 
 		interrupt-parent = <&tlmm>;
 		interrupts = <80 IRQ_TYPE_LEVEL_LOW>;
@@ -419,6 +422,20 @@
 		function = "gpio";
 		drive-strength = <8>;
 		bias-pull-up;
+	};
+
+	ts_npl_n: ts-npl-n {
+		pins = "gpio80";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	ts_pdn_n: ts-pdn-n {
+		pins = "gpio80";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
 	};
 };
 
