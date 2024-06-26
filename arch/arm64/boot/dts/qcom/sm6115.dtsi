@@ -2908,6 +2908,7 @@
 			iommus = <&apps_smmu 0x1a0 0x1>;
 			qcom,msa-fixed-perm;
 			status = "disabled";
+			qcom,no-msa-ready-indicator;
 		};
 
 		watchdog@f017000 {
