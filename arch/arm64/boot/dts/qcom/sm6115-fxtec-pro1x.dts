@@ -211,7 +211,7 @@
 &i2c1 {
 	status = "okay";
 	/* Clock frequency was not specified downstream, let's park it to 100 KHz */
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 
 	pca9534: gpio@21 {
 		compatible = "nxp,pca9534";
@@ -342,7 +342,11 @@
 
 		pm6125_l5a: l5 {
 			regulator-min-microvolt = <1648000>;
-			regulator-max-microvolt = <3056000>;
+			/* 3.056V capped to 2.96V for SDHCI */
+			regulator-max-microvolt = <2960000>;
+			regulator-allow-set-load;
+			/* Broken hw, this one can't be turned off or SDHCI will break! */
+			regulator-always-on;
 		};
 
 		pm6125_l6a: l6 {
@@ -351,8 +355,17 @@
 		};
 
 		pm6125_l7a: l7 {
-			regulator-min-microvolt = <1200000>;
-			regulator-max-microvolt = <1304000>;
+			/* 1.2V-1.304V fixed at 1.256V for SDHCI bias */
+			regulator-min-microvolt = <1256000>;
+			regulator-max-microvolt = <1256000>;
+			/*
+			 * TODO: SDHCI seems to also work with this one turned off, however
+			 * there exists a possibility that it may not work with some very
+			 * specific SDCard types, perhaps validating this against a wide
+			 * range of models could rule that out, saving some power would
+			 * certainly be nice..
+			 */
+			regulator-always-on;
 		};
 
 		pm6125_l8a: l8 {
@@ -407,8 +420,9 @@
 		};
 
 		pm6125_l18a: l18 {
-			regulator-min-microvolt = <1104000>;
-			regulator-max-microvolt = <1312000>;
+			/* 1.104V-1.312V fixed @ 1.232V for DSIPHY */
+			regulator-min-microvolt = <1232000>;
+			regulator-max-microvolt = <1232000>;
 		};
 
 		pm6125_l19a: l19 {
@@ -428,7 +442,11 @@
 
 		pm6125_l22a: l22 {
 			regulator-min-microvolt = <2952000>;
-			regulator-max-microvolt = <3304000>;
+			/* 3.304V capped to 2.96V for SDHCI */
+			regulator-max-microvolt = <2960000>;
+			regulator-allow-set-load;
+			/* Broken hw, this one can't be turned off or SDHCI will break! */
+			regulator-always-on;
 		};
 
 		pm6125_l23a: l23 {
