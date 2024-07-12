@@ -199,6 +199,8 @@ static const struct pinmux_ops aw9523_pinmux_ops = {
 
 static int aw9523_pcfg_param_to_reg(enum pin_config_param pcp, int pin, u8 *r)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	u8 reg;
 
 	switch (pcp) {
@@ -229,6 +231,8 @@ static int aw9523_pcfg_param_to_reg(enum pin_config_param pcp, int pin, u8 *r)
 static int aw9523_pconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 			    unsigned long *config)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param = pinconf_to_config_param(*config);
 	int regbit = pin % AW9523_PINS_PER_PORT;
@@ -236,15 +240,21 @@ static int aw9523_pconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 	u8 reg;
 	int rc;
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	rc = aw9523_pcfg_param_to_reg(param, pin, &reg);
 	if (rc)
 		return rc;
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	mutex_lock(&awi->i2c_lock);
 	rc = regmap_read(awi->regmap, reg, &val);
 	mutex_unlock(&awi->i2c_lock);
 	if (rc)
 		return rc;
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	switch (param) {
 	case PIN_CONFIG_BIAS_PULL_UP:
@@ -272,8 +282,12 @@ static int aw9523_pconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 	default:
 		return -ENOTSUPP;
 	}
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	if (val < 1)
 		return -EINVAL;
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	*config = pinconf_to_config_packed(param, !!val);
 
@@ -283,6 +297,8 @@ static int aw9523_pconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 static int aw9523_pconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 			    unsigned long *configs, unsigned int num_configs)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param;
 	int regbit = pin % AW9523_PINS_PER_PORT;
@@ -290,6 +306,8 @@ static int aw9523_pconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 	u8 reg;
 	unsigned int mask, val;
 	int i, rc;
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	mutex_lock(&awi->i2c_lock);
 	for (i = 0; i < num_configs; i++) {
@@ -408,6 +426,8 @@ static int aw9523_get_port_state(struct regmap *regmap, u8 pin, u8 regbit,
 
 static int aw9523_gpio_irq_type(struct irq_data *d, unsigned int type)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	switch (type) {
 	case IRQ_TYPE_NONE:
 	case IRQ_TYPE_EDGE_BOTH:
@@ -426,6 +446,8 @@ static int aw9523_gpio_irq_type(struct irq_data *d, unsigned int type)
  */
 static void aw9523_irq_mask(struct irq_data *d)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
 	unsigned int n = hwirq % AW9523_PINS_PER_PORT;
@@ -444,6 +466,8 @@ static void aw9523_irq_mask(struct irq_data *d)
  */
 static void aw9523_irq_unmask(struct irq_data *d)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
 	unsigned int n = hwirq % AW9523_PINS_PER_PORT;
@@ -455,6 +479,8 @@ static void aw9523_irq_unmask(struct irq_data *d)
 
 static irqreturn_t aw9523_irq_thread_func(int irq, void *dev_id)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = (struct aw9523 *)dev_id;
 	unsigned long n, val = 0;
 	unsigned long changed_gpio;
@@ -496,6 +522,8 @@ static irqreturn_t aw9523_irq_thread_func(int irq, void *dev_id)
  */
 static void aw9523_irq_bus_lock(struct irq_data *d)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 
 	mutex_lock(&awi->irq->lock);
@@ -511,6 +539,8 @@ static void aw9523_irq_bus_lock(struct irq_data *d)
  */
 static void aw9523_irq_bus_sync_unlock(struct irq_data *d)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 
 	regcache_cache_only(awi->regmap, false);
@@ -521,6 +551,8 @@ static void aw9523_irq_bus_sync_unlock(struct irq_data *d)
 static int aw9523_gpio_get_direction(struct gpio_chip *chip,
 				     unsigned int offset)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 regbit = offset % AW9523_PINS_PER_PORT;
 	int ret;
@@ -534,6 +566,8 @@ static int aw9523_gpio_get_direction(struct gpio_chip *chip,
 
 static int aw9523_gpio_get(struct gpio_chip *chip, unsigned int offset)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 regbit = offset % AW9523_PINS_PER_PORT;
 	unsigned int val;
@@ -560,6 +594,8 @@ static int aw9523_gpio_get(struct gpio_chip *chip, unsigned int offset)
 static int _aw9523_gpio_get_multiple(struct aw9523 *awi, u8 regbit,
 				     u8 *state, u8 mask)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	u32 dir_in, val;
 	u8 m;
 	int ret;
@@ -629,6 +665,8 @@ static void aw9523_gpio_set_multiple(struct gpio_chip *chip,
 				    unsigned long *mask,
 				    unsigned long *bits)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 mask_lo, mask_hi, bits_lo, bits_hi;
 	unsigned int reg;
@@ -658,6 +696,8 @@ static void aw9523_gpio_set_multiple(struct gpio_chip *chip,
 static void aw9523_gpio_set(struct gpio_chip *chip,
 			    unsigned int offset, int value)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 regbit = offset % AW9523_PINS_PER_PORT;
 
@@ -670,6 +710,8 @@ static void aw9523_gpio_set(struct gpio_chip *chip,
 
 static int aw9523_direction_input(struct gpio_chip *chip, unsigned int offset)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 regbit = offset % AW9523_PINS_PER_PORT;
 	int ret;
@@ -685,6 +727,8 @@ static int aw9523_direction_input(struct gpio_chip *chip, unsigned int offset)
 static int aw9523_direction_output(struct gpio_chip *chip,
 				   unsigned int offset, int value)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = gpiochip_get_data(chip);
 	u8 regbit = offset % AW9523_PINS_PER_PORT;
 	int ret;
@@ -750,6 +794,8 @@ done:
 
 static int aw9523_hw_reset(struct aw9523 *awi)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	int ret, max_retries = 2;
 
 	/* Sometimes the chip needs more than one reset cycle */
@@ -765,6 +811,8 @@ static int aw9523_hw_reset(struct aw9523 *awi)
 
 static int aw9523_init_gpiochip(struct aw9523 *awi, unsigned int npins)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct device *dev = awi->dev;
 	struct gpio_chip *gc = &awi->gpio;
 
@@ -802,6 +850,8 @@ static const struct irq_chip aw9523_irq_chip = {
 
 static int aw9523_init_irq(struct aw9523 *awi, int irq)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct device *dev = awi->dev;
 	struct gpio_irq_chip *girq;
 	int ret;
@@ -886,6 +936,8 @@ static const struct regmap_config aw9523_regmap = {
 
 static int aw9523_hw_init(struct aw9523 *awi)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	u8 p1_pin = AW9523_PINS_PER_PORT;
 	unsigned int val;
 	int ret;
@@ -893,12 +945,16 @@ static int aw9523_hw_init(struct aw9523 *awi)
 	/* No register caching during initialization */
 	regcache_cache_bypass(awi->regmap, true);
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	/* Bring up the chip */
 	ret = aw9523_hw_reset(awi);
 	if (ret) {
 		dev_err(awi->dev, "HW Reset failed: %d\n", ret);
 		return ret;
 	}
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	/*
 	 * This is the expected chip and it is running: it's time to
@@ -944,6 +1000,8 @@ static int aw9523_hw_init(struct aw9523 *awi)
 	if (ret)
 		return ret;
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	/* Everything went fine: activate and reinitialize register cache */
 	regcache_cache_bypass(awi->regmap, false);
 	return regmap_reinit_cache(awi->regmap, &aw9523_regmap);
@@ -951,6 +1009,8 @@ static int aw9523_hw_init(struct aw9523 *awi)
 
 static int aw9523_probe(struct i2c_client *client)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct device *dev = &client->dev;
 	struct pinctrl_desc *pdesc;
 	struct aw9523 *awi;
@@ -960,17 +1020,27 @@ static int aw9523_probe(struct i2c_client *client)
 	if (!awi)
 		return -ENOMEM;
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	i2c_set_clientdata(client, awi);
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	awi->dev = dev;
 	awi->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(awi->reset_gpio))
 		return PTR_ERR(awi->reset_gpio);
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	gpiod_set_consumer_name(awi->reset_gpio, "aw9523 reset");
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	awi->regmap = devm_regmap_init_i2c(client, &aw9523_regmap);
 	if (IS_ERR(awi->regmap))
 		return PTR_ERR(awi->regmap);
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	awi->vio_vreg = devm_regulator_get_optional(dev, "vio");
 	if (IS_ERR(awi->vio_vreg)) {
@@ -983,12 +1053,16 @@ static int aw9523_probe(struct i2c_client *client)
 			return ret;
 	}
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	mutex_init(&awi->i2c_lock);
 	lockdep_set_subclass(&awi->i2c_lock, i2c_adapter_depth(client->adapter));
 
 	pdesc = devm_kzalloc(dev, sizeof(*pdesc), GFP_KERNEL);
 	if (!pdesc)
 		return -ENOMEM;
+
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
 
 	ret = aw9523_hw_init(awi);
 	if (ret)
@@ -1012,6 +1086,8 @@ static int aw9523_probe(struct i2c_client *client)
 			goto err_disable_vregs;
 	}
 
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	awi->pctl = devm_pinctrl_register(dev, pdesc, awi);
 	if (IS_ERR(awi->pctl)) {
 		ret = dev_err_probe(dev, PTR_ERR(awi->pctl), "Cannot register pinctrl");
@@ -1033,6 +1109,8 @@ err_disable_vregs:
 
 static void aw9523_remove(struct i2c_client *client)
 {
+	printk(KERN_DEBUG "AW9523 TRACE %s:%d/%s()!\n", __FILE__, __LINE__, __func__);
+
 	struct aw9523 *awi = i2c_get_clientdata(client);
 
 	/*
