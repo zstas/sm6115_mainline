@@ -644,6 +644,13 @@
 				pins = "gpio4", "gpio5";
 				function = "qup1";
 				drive-strength = <2>;
+				bias-disable;
+			};
+
+			qup_i2c1_sleep: qup-i2c1-sleep-state {
+				pins = "gpio4", "gpio5";
+				function = "gpio";
+				drive-strength = <2>;
 				bias-pull-up;
 			};
 
@@ -1325,8 +1332,9 @@
 				reg = <0x0 0x04a84000 0x0 0x4000>;
 				clock-names = "se";
 				clocks = <&gcc GCC_QUPV3_WRAP0_S1_CLK>;
-				pinctrl-names = "default";
+				pinctrl-names = "default", "sleep";
 				pinctrl-0 = <&qup_i2c1_default>;
+				pinctrl-1 = <&qup_i2c1_sleep>;
 				interrupts = <GIC_SPI 328 IRQ_TYPE_LEVEL_HIGH>;
 				dmas = <&gpi_dma0 0 1 QCOM_GPI_I2C>,
 				       <&gpi_dma0 1 1 QCOM_GPI_I2C>;
