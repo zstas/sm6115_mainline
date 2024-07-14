@@ -506,13 +506,14 @@
 		bias-pull-up;
 	};
 
-	gpio_expander_int_n: gpio-exp-intn-def {
+	gpio_expander_int_n: gpio-expander-int-n {
 		pins = "gpio107";
 		function = "gpio";
 		drive-strength = <2>;
 		input-enable;
 	};
-	gpio_expander_rst_n: gpio-exp-rst-def {
+
+	gpio_expander_rst_n: gpio-expander-rst-n {
 		pins = "gpio111";
 		function = "gpio";
 		drive-strength = <8>;
