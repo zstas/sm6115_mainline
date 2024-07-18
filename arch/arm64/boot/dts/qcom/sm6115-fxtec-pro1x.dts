@@ -248,16 +248,15 @@
 	status = "okay";
 };
 
-&usb_dwc3 {
-	maximum-speed = "high-speed";
-	dr_mode = "peripheral";
-};
-
 &usb_hsphy {
 	vdd-supply = <&pm6125_l4a>;
 	vdda-pll-supply = <&pm6125_l12a>;
 	vdda-phy-dpdm-supply = <&pm6125_l15a>;
 	status = "okay";
+};
+
+&usb_qmpphy {
+	       status = "okay";
 };
 
 &wifi {
