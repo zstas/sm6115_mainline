@@ -117,6 +117,7 @@
 	ts_vddio_supply: ts-vddio-supply {
 		compatible = "regulator-fixed";
 		regulator-name = "ts_vddio_supply";
+		startup-delay-us = <2>;
 		gpio = <&pca9534 2 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
@@ -211,7 +212,73 @@
 &i2c1 {
 	status = "okay";
 	/* Clock frequency was not specified downstream, let's park it to 100 KHz */
-	clock-frequency = <400000>;
+	clock-frequency = <100000>;
+
+	pm8008: pmic@8 {
+		compatible = "qcom,pm8008";
+		reg = <0x8>;
+
+		interrupts-extended = <&tlmm 25 IRQ_TYPE_EDGE_RISING>;
+		reset-gpios = <&tlmm 26 GPIO_ACTIVE_LOW>;
+
+		vdd-l1-l2-supply = <&pm6125_s6a>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pm8008_default>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-ranges = <&pm8008 0 0 2>;
+
+		interrupt-controller;
+		#interrupt-cells = <2>;
+
+		#thermal-sensor-cells = <0>;
+
+		regulators {
+			vreg_l1p: ldo1 {
+				regulator-name = "vreg_l1p";
+				regulator-min-microvolt = <528000>;
+				regulator-max-microvolt = <1504000>;
+			};
+
+			vreg_l2p: ldo2 {
+				regulator-name = "vreg_l2p";
+				regulator-min-microvolt = <528000>;
+				regulator-max-microvolt = <1504000>;
+			};
+
+			vreg_l3p: ldo3 {
+				regulator-name = "vreg_l3p";
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <3400000>;
+			};
+
+			vreg_l4p: ldo4 {
+				regulator-name = "vreg_l4p";
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <3400000>;
+			};
+
+			vreg_l5p: ldo5 {
+				regulator-name = "vreg_l5p";
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <3400000>;
+			};
+
+			vreg_l6p: ldo6 {
+				regulator-name = "vreg_l6p";
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <3400000>;
+			};
+
+			vreg_l7p: ldo7 {
+				regulator-name = "vreg_l7p";
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <3440000>;
+			};
+		};
+	};
 
 	pca9534: gpio@21 {
 		compatible = "nxp,pca9534";
@@ -224,7 +291,7 @@
 		compatible = "awinic,aw9523-pinctrl";
 		reg = <0x5b>;
 		interrupt-parent = <&tlmm>;
-		interrupts = <107 IRQ_TYPE_EDGE_FALLING>;
+		interrupts = <107 IRQ_TYPE_LEVEL_LOW>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		gpio-ranges = <&gpioext0 0 0 16>;
@@ -261,7 +328,7 @@
 		compatible = "goodix,gt9286";
 		reg = <0x14>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&ts_int_n>, <&ts_rst_n>;
+		pinctrl-0 = <&ts_rst_n>, <&ts_int_n>;
 
 		interrupt-parent = <&tlmm>;
 		interrupts = <80 IRQ_TYPE_LEVEL_LOW>;
@@ -322,7 +389,7 @@
 
 		pm6125_s7a: s7 {
 			regulator-min-microvolt = <1280000>;
-			regulator-max-microvolt = <2040000>;
+			regulator-max-microvolt = <2080000>;
 		};
 
 		pm6125_s8a: s8 {
@@ -543,8 +610,8 @@
 	ts_int_n: ts-int-n {
 		pins = "gpio80";
 		function = "gpio";
-		drive-strength = <8>;
-		bias-pull-up;
+		drive-strength = <2>;
+		bias-disable;
 	};
 
 	ts_rst_n: ts-rst-n {
@@ -552,6 +619,22 @@
 		function = "gpio";
 		drive-strength = <8>;
 		bias-pull-up;
+	};
+
+	pm8008_default: pm8008-default-state {
+		int-pins {
+			pins = "gpio25";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+		};
+
+		reset-n-pins {
+			pins = "gpio26";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-disable;
+		};
 	};
 };
 
