@@ -118,6 +118,28 @@
 		};
 	};
 
+	i2c1_gpio: i2c {
+		compatible = "i2c-gpio";
+
+		sda-gpios = <&tlmm 4 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&tlmm 5 GPIO_ACTIVE_HIGH>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		status = "disabled";
+	};
+
+	i2c2_gpio: i2c {
+		compatible = "i2c-gpio";
+
+		sda-gpios = <&tlmm 6 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&tlmm 7 GPIO_ACTIVE_HIGH>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		status = "disabled";
+	};
+
 	gpio-leds {
 		compatible = "gpio-leds";
 
@@ -158,7 +180,7 @@
 	};
 };
 
-&i2c1 {
+&i2c1_gpio {
 	clock-frequency = <100000>;
 
 	status = "okay";
@@ -202,7 +224,7 @@
 	};
 };
 
-&i2c2 {
+&i2c2_gpio {
 	status = "okay";
 	/* Clock frequency was not specified downstream, let's park it to 100 KHz */
 	clock-frequency = <100000>;
