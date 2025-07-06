@@ -70,6 +70,9 @@ static struct pm8xxx_regs pm7250_regs = {
 	.drv_offset = 0x40,
 	.drv_mask = GENMASK(7, 0),
 	.drv_shift = 0,
+	.drv2_offset = 0x41,
+	.drv2_mask = GENMASK(3, 0),
+	.drv2_shift = 8,
 	.drv_en_manual_mask = 0,
 	.drv_in_step = true,
 };
