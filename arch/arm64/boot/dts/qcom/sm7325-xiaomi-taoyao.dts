@@ -747,6 +747,10 @@
 	firmware-name = "qcom/sm7325/xiaomi/taoyao/a660_zap.mbn";
 };
 
+&pm7250_vib {
+	status = "okay";
+};
+
 &pm7325_gpios {
 	key_vol_up: key-vol-up-n-state {
 		pins = "gpio6";
