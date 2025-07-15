@@ -224,6 +224,34 @@
 		regulator-always-on;
 		vin-supply = <&vph_pwr>;
 	};
+
+	wcd9375: audio-codec {
+		compatible = "qcom,wcd9375-codec";
+
+		pinctrl-0 = <&wcd_reset_n>;
+		pinctrl-1 = <&wcd_reset_n_sleep>;
+		pinctrl-names = "default", "sleep";
+
+		reset-gpios = <&tlmm 83 GPIO_ACTIVE_LOW>;
+
+		vdd-rxtx-supply = <&vdd_txrx>;
+		vdd-px-supply = <&vdd_px_wcd9375>;
+		vdd-buck-supply = <&vdd_buck>;
+		vdd-mic-bias-supply = <&vdd_mic_bias>;
+
+		qcom,micbias1-microvolt = <2750000>;
+		qcom,micbias2-microvolt = <2750000>;
+		qcom,micbias3-microvolt = <2750000>;
+		qcom,micbias4-microvolt = <2750000>;
+		qcom,mbhc-buttons-vthreshold-microvolt = <75000 150000 237000 500000 500000
+							  500000 500000 500000>;
+		qcom,mbhc-headset-vthreshold-microvolt = <1700000>;
+		qcom,mbhc-headphone-vthreshold-microvolt = <50000>;
+		qcom,rx-device = <&wcd_rx>;
+		qcom,tx-device = <&wcd_tx>;
+
+		#sound-dai-cells = <1>;
+	};
 };
 
 &apps_rsc {
@@ -453,7 +481,7 @@
 			regulator-initial-mode = <RPMH_REGULATOR_MODE_HPM>;
 		};
 
-		vdd_px_wcd9385:
+		vdd_px_wcd9375:
 		vdd_txrx:
 		vdd_px0:
 		vdd_px3:
@@ -781,6 +809,7 @@
 		#sound-dai-cells = <1>;
 		sound-channel = <0>;
 	};
+
 	tfa9873_r: codec@35 { /* SPK */
 		compatible = "nxp,tfa9873",
 			     "nxp,tfa9872";
@@ -797,6 +826,25 @@
 	memory-region = <&ipa_fw_mem>;
 	firmware-name = "qcom/sm7325/xiaomi/taoyao/ipa_fws.mbn";
 
+	status = "okay";
+};
+
+&lpass_rx_macro {
+	status = "okay";
+};
+
+&lpass_tx_macro {
+	status = "okay";
+};
+
+&lpass_va_macro {
+	qcom,dmic-sample-rate = <4800000>;
+	vdd-micb-supply = <&vdd_mic_bias>;
+
+	status = "okay";
+};
+
+&pm7250_vib {
 	status = "okay";
 };
 
@@ -929,11 +977,27 @@
 		reg = <PRIMARY_MI2S_RX>;
 		qcom,sd-lines = <1>;
 	};
+
+	dai@113 {
+		reg = <RX_CODEC_DMA_RX_0>;
+	};
+
+	dai@120 {
+		reg = <TX_CODEC_DMA_TX_3>;
+	};
 };
 
 &q6asmdai {
 	dai@0 {
 		reg = <MSM_FRONTEND_DAI_MULTIMEDIA1>;
+	};
+
+	dai@1 {
+		reg = <MSM_FRONTEND_DAI_MULTIMEDIA2>;
+	};
+
+	dai@2 {
+		reg = <MSM_FRONTEND_DAI_MULTIMEDIA3>;
 	};
 };
 
@@ -999,11 +1063,36 @@
 	pinctrl-names = "default",
 			"sleep";
 
+	audio-routing = "IN1_HPHL", "HPHL_OUT",
+			"IN2_HPHR", "HPHR_OUT",
+			"AMIC1", "MIC BIAS1",
+			"AMIC2", "MIC BIAS2",
+			"AMIC3", "MIC BIAS3",
+			"AMIC4", "MIC BIAS4",
+			"TX SWR_ADC1", "ADC1_OUTPUT",
+			"TX SWR_ADC2", "ADC2_OUTPUT";
+
 	mm1-dai-link {
 		link-name = "MultiMedia1";
 
 		cpu {
 			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA1>;
+		};
+	};
+
+	mm2-dai-link {
+		link-name = "MultiMedia2";
+
+		cpu {
+			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA2>;
+		};
+	};
+
+	mm3-dai-link {
+		link-name = "MultiMedia3";
+
+		cpu {
+			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA3>;
 		};
 	};
 
@@ -1020,6 +1109,38 @@
 
 		codec {
 			sound-dai = <&tfa9873_l 0>, <&tfa9873_r 0>;
+		};
+	};
+
+	wcd-playback-dai-link {
+		link-name = "WCD Playback";
+
+		cpu {
+			sound-dai = <&q6afedai RX_CODEC_DMA_RX_0>;
+		};
+
+		codec {
+			sound-dai = <&wcd9375 0>, <&swr0 0>, <&lpass_rx_macro 0>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+	};
+
+	wcd-capture-dai-link {
+		link-name = "WCD Capture";
+
+		cpu {
+			sound-dai = <&q6afedai TX_CODEC_DMA_TX_3>;
+		};
+
+		codec {
+			sound-dai = <&wcd9375 1>, <&swr1 0>, <&lpass_tx_macro 0>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
 		};
 	};
 };
@@ -1046,6 +1167,28 @@
 
 		pinctrl-0 = <&ts_irq>, <&ts_reset>;
 		pinctrl-names = "default";
+	};
+};
+
+&swr0 {
+	status = "okay";
+
+	wcd_rx: codec@0,4 {
+		compatible = "sdw20217010a00";
+		reg = <0 4>;
+
+		qcom,rx-port-mapping = <1 2 3 4 5>;
+	};
+};
+
+&swr1 {
+	status = "okay";
+
+	wcd_tx: codec@0,3 {
+		compatible = "sdw20217010a00";
+		reg = <0 3>;
+
+		qcom,tx-port-mapping = <1 2 3 4>;
 	};
 };
 
@@ -1102,6 +1245,20 @@
 		function = "gpio";
 		drive-strength = <8>;
 		bias-pull-up;
+	};
+
+	wcd_reset_n: wcd-reset-n-state {
+		pins = "gpio83";
+		function = "gpio";
+		drive-strength = <10>;
+	};
+
+	wcd_reset_n_sleep: wcd-reset-n-sleep-state {
+		pins = "gpio83";
+		function = "gpio";
+		drive-strength = <10>;
+		bias-disable;
+		output-low;
 	};
 
 	hst_bt_en: hst-bt-en-state {
