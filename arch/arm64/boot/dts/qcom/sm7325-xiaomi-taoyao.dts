@@ -742,6 +742,36 @@
 	firmware-name = "qcom/sm7325/xiaomi/taoyao/a660_zap.mbn";
 };
 
+&i2c1 {
+	clock-frequency = <100000>;
+
+	status = "okay";
+
+	typec-mux@42 {
+		compatible = "fcs,fsa4480";
+		reg = <0x42>;
+
+		vcc-supply = <&vreg_bob>;
+
+		mode-switch;
+		orientation-switch;
+
+		port {
+			fsa4480_sbu_mux: endpoint {
+				remote-endpoint = <&pmic_glink_sbu>;
+			};
+		};
+	};
+};
+
+&ipa {
+	qcom,gsi-loader = "self";
+	memory-region = <&ipa_fw_mem>;
+	firmware-name = "qcom/sm7325/xiaomi/taoyao/ipa_fws.mbn";
+
+	status = "okay";
+};
+
 &pm7325_gpios {
 	key_vol_up: key-vol-up-n-state {
 		pins = "gpio6";
@@ -782,36 +812,6 @@
 &qup_spi13_data_clk {
 	drive-strength = <6>;
 	bias-disable;
-};
-
-&i2c1 {
-	clock-frequency = <100000>;
-
-	status = "okay";
-
-	typec-mux@42 {
-		compatible = "fcs,fsa4480";
-		reg = <0x42>;
-
-		vcc-supply = <&vreg_bob>;
-
-		mode-switch;
-		orientation-switch;
-
-		port {
-			fsa4480_sbu_mux: endpoint {
-				remote-endpoint = <&pmic_glink_sbu>;
-			};
-		};
-	};
-};
-
-&ipa {
-	qcom,gsi-loader = "self";
-	memory-region = <&ipa_fw_mem>;
-	firmware-name = "qcom/sm7325/xiaomi/taoyao/ipa_fws.mbn";
-
-	status = "okay";
 };
 
 &remoteproc_adsp {
