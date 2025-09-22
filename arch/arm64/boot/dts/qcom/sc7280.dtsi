@@ -4031,7 +4031,7 @@
 					};
 				};
 
-				fastrpc {
+				fastrpc_adsp: fastrpc {
 					compatible = "qcom,fastrpc";
 					qcom,glink-channels = "fastrpcglink-apps-dsp";
 					label = "adsp";
