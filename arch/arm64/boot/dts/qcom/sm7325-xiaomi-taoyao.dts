@@ -28,6 +28,8 @@
 /* The following reserved memory regions have different addresses or sizes */
 /delete-node/ &adsp_mem;
 /delete-node/ &cdsp_mem;
+/delete-node/ &dai1;
+/delete-node/ &dai2;
 /delete-node/ &rmtfs_mem;
 
 / {
@@ -834,12 +836,6 @@
 	dai@16 {
 		reg = <PRIMARY_MI2S_RX>;
 		qcom,sd-lines = <1>;
-	};
-};
-
-&q6asmdai {
-	dai@0 {
-		reg = <MSM_FRONTEND_DAI_MULTIMEDIA1>;
 	};
 };
 
