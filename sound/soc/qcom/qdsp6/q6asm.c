@@ -442,6 +442,13 @@ static int __q6asm_memory_map_regions(struct audio_client *ac, int dir,
 		num_regions = periods;
 	}
 
+	printk("dir %d", dir);
+	printk("period sz %d", period_sz);
+	printk("periods %d", periods);
+	printk("num_regions %d", num_regions);
+	printk("buf sz %d", buf_sz);
+	dump_stack();
+
 	/* DSP expects size should be aligned to 4K */
 	buf_sz = ALIGN(buf_sz, 4096);
 
