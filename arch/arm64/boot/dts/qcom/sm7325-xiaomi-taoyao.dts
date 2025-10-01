@@ -914,7 +914,7 @@
 	};
 
 	i2s-dai-link {
-		link-name = "I2S Playback";
+		link-name = "Primary MI2S Playback";
 
 		cpu {
 			sound-dai = <&q6afedai PRIMARY_MI2S_RX>;
