@@ -716,6 +716,7 @@ static int aw86927_detect(struct aw86927_data *haptics)
 		return dev_err_probe(haptics->dev, err, "Failed to read CHIPID registers\n");
 
 	chip_id = be16_to_cpu(read_buf);
+	printk (KERN_ERR "chip id is %x", chip_id);
 
 	if (chip_id != AW86927_CHIPID) {
 		dev_err(haptics->dev, "Unexpected CHIPID value 0x%x\n", chip_id);

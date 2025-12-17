@@ -744,6 +744,21 @@
 	};
 };
 
+&i2c9 {
+	status = "okay";
+
+	vibrator@58 {
+		compatible = "awinic,aw86927";
+		reg = <0x58>;
+
+		interrupts-extended = <&tlmm 18 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&tlmm 35 GPIO_ACTIVE_LOW>;
+
+		pinctrl-0 = <&aw86xxx_int_default>;
+		pinctrl-names = "default";
+	};
+};
+
 &ipa {
 	qcom,gsi-loader = "self";
 	memory-region = <&ipa_fw_mem>;
@@ -934,6 +949,13 @@
 
 &tlmm {
 	gpio-reserved-ranges = <32 2>, <48 4>, <56 4>;
+
+	aw86xxx_int_default: aw86xxx-int-default {
+		pins = "gpio18";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-up;
+	};
 
 	bt_uart_sleep_cts: bt-uart-sleep-cts-state {
 		pins = "gpio28";
