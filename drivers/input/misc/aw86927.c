@@ -141,6 +141,8 @@
 #define AW86927_CHIPIDL_REG			0x58
 #define AW86927_CHIPID				0x9270
 
+#define AW86224_ERFD9_REG			0x64
+
 #define AW86927_TMCFG_REG			0x5b
 #define AW86927_TMCFG_UNLOCK			0x7d
 #define AW86927_TMCFG_LOCK			0x00
@@ -224,6 +226,8 @@ static const struct aw86927_sram_waveform_header sram_waveform_header = {
 
 static int aw86927_wait_enter_standby(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	unsigned int reg_val;
 	int err;
 
@@ -241,6 +245,8 @@ static int aw86927_wait_enter_standby(struct aw86927_data *haptics)
 
 static int aw86927_play_mode(struct aw86927_data *haptics, u8 play_mode)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	int err;
 
 	switch (play_mode) {
@@ -297,6 +303,8 @@ static int aw86927_play_mode(struct aw86927_data *haptics, u8 play_mode)
 
 static int aw86927_stop(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	int err;
 
 	err = regmap_write(haptics->regmap, AW86927_PLAYCFG4_REG, AW86927_PLAYCFG4_STOP);
@@ -318,6 +326,8 @@ static int aw86927_stop(struct aw86927_data *haptics)
 
 static int aw86927_haptics_play(struct input_dev *dev, void *data, struct ff_effect *effect)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	struct aw86927_data *haptics = input_get_drvdata(dev);
 	int level;
 
@@ -337,36 +347,53 @@ static int aw86927_haptics_play(struct input_dev *dev, void *data, struct ff_eff
 
 static int aw86927_play_sine(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	int err;
 
-	err = aw86927_stop(haptics);
-	if (err)
-		return err;
+	// err = aw86927_stop(haptics);
+	// if (err)
+	// {
+	// 	printk (KERN_ERR "failed to stop %d", err );
+	// 	return err;
+	// }
 
 	err = aw86927_play_mode(haptics, AW86927_RAM_MODE);
 	if (err)
+	{
+		printk (KERN_ERR "failed to set play mode %d", err );
 		return err;
+	}
 
 	err = regmap_update_bits(haptics->regmap, AW86927_PLAYCFG3_REG,
 				 AW86927_PLAYCFG3_AUTO_BST_MASK,
 				 FIELD_PREP(AW86927_PLAYCFG3_AUTO_BST_MASK,
 					    AW86927_PLAYCFG3_AUTO_BST_ENABLE));
 	if (err)
+	{
+		printk (KERN_ERR "failed to update PLAYCFG3_REG %d", err );
 		return err;
+	}
 
 	/* Set waveseq 1 to the first wave */
 	err = regmap_update_bits(haptics->regmap, AW86927_WAVCFG1_REG,
 				 AW86927_WAVCFG1_WAVSEQ1_MASK,
 				 FIELD_PREP(AW86927_WAVCFG1_WAVSEQ1_MASK, 1));
 	if (err)
+	{
+		printk (KERN_ERR "failed to update WAVCFG1_REG %d", err );
 		return err;
+	}
 
 	/* set wavseq 2 to zero */
 	err = regmap_update_bits(haptics->regmap, AW86927_WAVCFG2_REG,
 				 AW86927_WAVCFG2_WAVSEQ2_MASK,
 				 FIELD_PREP(AW86927_WAVCFG2_WAVSEQ2_MASK, 0));
 	if (err)
+	{
+		printk (KERN_ERR "failed to update WAVCFG2_REG %d", err );
 		return err;
+	}
 
 	err = regmap_update_bits(haptics->regmap,
 				 AW86927_WAVCFG9_REG,
@@ -374,23 +401,34 @@ static int aw86927_play_sine(struct aw86927_data *haptics)
 				 FIELD_PREP(AW86927_WAVCFG9_SEQ1LOOP_MASK,
 					    AW86927_WAVCFG9_SEQ1LOOP_INFINITELY));
 	if (err)
+	{
+		printk (KERN_ERR "failed to update WAVCFG9_REG %d", err );
 		return err;
+	}
 
 	/* set gain to value lower than 0x80 to avoid distorted playback */
 	err = regmap_write(haptics->regmap, AW86927_PLAYCFG2_REG, 0x7c);
 	if (err)
+	{
+		printk (KERN_ERR "failed to write PLAYCFG2_REG %d", err );
 		return err;
+	}
 
 	/* Start playback */
 	err = regmap_write(haptics->regmap, AW86927_PLAYCFG4_REG, AW86927_PLAYCFG4_GO);
 	if (err)
+	{
+		printk (KERN_ERR "failed to start playback %d", err );
 		return err;
+	}
 
 	return 0;
 }
 
 static void aw86927_close(struct input_dev *input)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	struct aw86927_data *haptics = input_get_drvdata(input);
 	struct device *dev = &haptics->client->dev;
 	int err;
@@ -404,6 +442,8 @@ static void aw86927_close(struct input_dev *input)
 
 static void aw86927_haptics_play_work(struct work_struct *work)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	struct aw86927_data *haptics =
 		container_of(work, struct aw86927_data, play_work);
 	struct device *dev = &haptics->client->dev;
@@ -420,6 +460,8 @@ static void aw86927_haptics_play_work(struct work_struct *work)
 
 static void aw86927_hw_reset(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	/* Assert reset */
 	gpiod_set_value_cansleep(haptics->reset_gpio, 1);
 	/* Wait ~1ms */
@@ -432,6 +474,8 @@ static void aw86927_hw_reset(struct aw86927_data *haptics)
 
 static int aw86927_haptic_init(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	int err;
 
 	err = regmap_update_bits(haptics->regmap,
@@ -586,6 +630,8 @@ static int aw86927_haptic_init(struct aw86927_data *haptics)
 
 static int aw86927_ram_init(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	int err;
 
 	err = aw86927_wait_enter_standby(haptics);
@@ -598,6 +644,9 @@ static int aw86927_ram_init(struct aw86927_data *haptics)
 				 AW86927_SYSCTRL3_EN_RAMINIT_MASK,
 				 FIELD_PREP(AW86927_SYSCTRL3_EN_RAMINIT_MASK,
 					    AW86927_SYSCTRL3_EN_RAMINIT_ON));
+
+	/* AW86938 wants a 1ms delay here */
+	usleep_range(1000, 1500);
 
 	/* Set base address for the start of the SRAM waveforms */
 	err = regmap_write(haptics->regmap,
@@ -707,8 +756,11 @@ static irqreturn_t aw86927_irq(int irq, void *data)
 
 static int aw86927_detect(struct aw86927_data *haptics)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	__be16 read_buf;
 	u16 chip_id;
+	unsigned int ef_id;
 	int err;
 
 	err = regmap_bulk_read(haptics->regmap, AW86927_CHIPIDH_REG, &read_buf, 2);
@@ -717,6 +769,16 @@ static int aw86927_detect(struct aw86927_data *haptics)
 
 	chip_id = be16_to_cpu(read_buf);
 	printk (KERN_ERR "chip id is %x", chip_id);
+
+	if (chip_id == 0) {
+		err = regmap_read(haptics->regmap, AW86224_ERFD9_REG, &ef_id);
+
+		if ((ef_id & 0x41) == 0x00)
+		{
+			printk (KERN_ERR "found aw86224");
+			return 0;
+		}
+	}
 
 	if (chip_id != AW86927_CHIPID) {
 		dev_err(haptics->dev, "Unexpected CHIPID value 0x%x\n", chip_id);
@@ -728,6 +790,8 @@ static int aw86927_detect(struct aw86927_data *haptics)
 
 static int aw86927_probe(struct i2c_client *client)
 {
+	printk (KERN_ERR "%s", __func__ );
+
 	struct aw86927_data *haptics;
 	int err;
 
@@ -822,11 +886,14 @@ static int aw86927_probe(struct i2c_client *client)
 	if (err)
 		return dev_err_probe(haptics->dev, err, "Failed to register input device\n");
 
+	printk (KERN_ERR "probe finished -- all good");
+
 	return 0;
 }
 
 static const struct of_device_id aw86927_of_id[] = {
 	{ .compatible = "awinic,aw86927" },
+	{ .compatible = "awinic,aw86224" },
 	{ /* sentinel */ }
 };
 
