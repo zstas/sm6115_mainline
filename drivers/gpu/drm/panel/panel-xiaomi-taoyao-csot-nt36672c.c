@@ -405,7 +405,7 @@ static void xiaomi_taoyao_csot_nt36672c_remove(struct mipi_dsi_device *dsi)
 }
 
 static const struct of_device_id xiaomi_taoyao_csot_nt36672c_of_match[] = {
-	{ .compatible = "mdss,xiaomi,taoyao-csot-nt36672c" },
+	{ .compatible = "mdss,xiaomi-taoyao-csot-nt36672c" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, xiaomi_taoyao_csot_nt36672c_of_match);
