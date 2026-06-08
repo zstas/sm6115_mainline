@@ -822,6 +822,7 @@ static int aw9523_init_irq(struct aw9523 *awi, int irq)
 		return -ENOMEM;
 
 	mutex_init(&awi->irq->lock);
+	INIT_WORK(&awi->irq_work, aw9523_irq_work);
 
 	ret = devm_request_threaded_irq(dev, irq, NULL, aw9523_irq_thread_func,
 					IRQF_ONESHOT, dev_name(dev), awi);
