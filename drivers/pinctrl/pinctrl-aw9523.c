@@ -58,10 +58,12 @@
  * struct aw9523_irq - Interrupt controller structure
  * @lock: mutex locking for the irq bus
  * @cached_gpio: stores the previous gpio status for bit comparison
+ * @enabled: bitmap of enabled (unmasked) interrupts
  */
 struct aw9523_irq {
 	struct mutex lock;
 	u16 cached_gpio;
+	u16 enabled;
 };
 
 /*
@@ -425,10 +427,8 @@ static void aw9523_irq_mask(struct irq_data *d)
 {
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
-	unsigned int n = hwirq % AW9523_PINS_PER_PORT;
 
-	regmap_update_bits(awi->regmap, AW9523_REG_INTR_DIS(hwirq),
-			   BIT(n), BIT(n));
+	WRITE_ONCE(awi->irq->enabled, awi->irq->enabled & ~BIT(hwirq));
 	gpiochip_disable_irq(&awi->gpio, hwirq);
 }
 
@@ -443,11 +443,9 @@ static void aw9523_irq_unmask(struct irq_data *d)
 {
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
-	unsigned int n = hwirq % AW9523_PINS_PER_PORT;
 
+	WRITE_ONCE(awi->irq->enabled, awi->irq->enabled | BIT(hwirq));
 	gpiochip_enable_irq(&awi->gpio, hwirq);
-	regmap_update_bits(awi->regmap, AW9523_REG_INTR_DIS(hwirq),
-			   BIT(n), 0);
 }
 
 static irqreturn_t aw9523_irq_thread_func(int irq, void *dev_id)
@@ -468,7 +466,7 @@ static irqreturn_t aw9523_irq_thread_func(int irq, void *dev_id)
 	}
 
 	/* Handle GPIO input release interrupt as well */
-	changed_gpio = awi->irq->cached_gpio ^ val;
+	changed_gpio = (awi->irq->cached_gpio ^ val) & READ_ONCE(awi->irq->enabled);
 	awi->irq->cached_gpio = val;
 
 	/*
@@ -496,7 +494,6 @@ static void aw9523_irq_bus_lock(struct irq_data *d)
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 
 	mutex_lock(&awi->irq->lock);
-	regcache_cache_only(awi->regmap, true);
 }
 
 /*
@@ -510,8 +507,10 @@ static void aw9523_irq_bus_sync_unlock(struct irq_data *d)
 {
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 
-	regcache_cache_only(awi->regmap, false);
-	regcache_sync(awi->regmap);
+	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(0),
+		   ~(awi->irq->enabled) & U8_MAX);
+	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(AW9523_PINS_PER_PORT),
+		   (~(awi->irq->enabled) >> 8) & U8_MAX);
 	mutex_unlock(&awi->irq->lock);
 }
 
