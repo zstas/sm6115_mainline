@@ -86,6 +86,7 @@ struct aw9523 {
 	struct pinctrl_dev *pctl;
 	struct gpio_chip gpio;
 	struct aw9523_irq *irq;
+	struct work_struct irq_work;
 };
 
 static const struct pinctrl_pin_desc aw9523_pins[] = {
@@ -496,21 +497,30 @@ static void aw9523_irq_bus_lock(struct irq_data *d)
 	mutex_lock(&awi->irq->lock);
 }
 
+static void aw9523_irq_work(struct work_struct *work)
+{
+	struct aw9523 *awi = container_of(work, struct aw9523, irq_work);
+	u16 enabled;
+
+	enabled = READ_ONCE(awi->irq->enabled);
+	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(0),
+		   ~enabled & U8_MAX);
+	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(AW9523_PINS_PER_PORT),
+		   (~enabled >> 8) & U8_MAX);
+}
+
 /*
  * aw9523_irq_bus_sync_unlock - Synchronize state and unlock
  * @d: irq data
  *
- * Writes the interrupt mask bits (found in the bit map) to the
- * hardware, then unlocks the bus.
+ * Schedules the work to write the interrupt mask bits to the hardware
+ * from process context, then unlocks the bus.
  */
 static void aw9523_irq_bus_sync_unlock(struct irq_data *d)
 {
 	struct aw9523 *awi = gpiochip_get_data(irq_data_get_irq_chip_data(d));
 
-	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(0),
-		   ~(awi->irq->enabled) & U8_MAX);
-	regmap_write(awi->regmap, AW9523_REG_INTR_DIS(AW9523_PINS_PER_PORT),
-		   (~(awi->irq->enabled) >> 8) & U8_MAX);
+	schedule_work(&awi->irq_work);
 	mutex_unlock(&awi->irq->lock);
 }
 
