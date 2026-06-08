@@ -114,8 +114,7 @@
 	};
 
 	gpio_keyboard: gpio-keyboard {
-			compatible = "gpio-fastmatrix-keyboard";
-			label = "F(x)Tec Pro1x Hardware Keyboard";
+			compatible = "gpio-matrix-keypad";
 			row-gpios =
 				<&gpioext0 0 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>,
 				<&gpioext0 1 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>,
@@ -139,9 +138,10 @@
 			keypad,num-columns = <8>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&keyboard_pins_col>, <&keyboard_pins_row>;
-			autorescan-ms = <50>;
 			debounce-delay-ms = <10>;
 			col-scan-delay-us = <1500>;
+			gpio-activelow;
+			wakeup-source;
 	};
 
 	gpio-keys {
