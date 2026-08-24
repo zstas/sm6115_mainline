@@ -795,6 +795,7 @@ static int aw86927_haptic_init(struct aw86927_data *haptics)
 static int aw86224_ram_init(struct aw86927_data *haptics)
 {
 	int err;
+	int i;
 
 	err = aw86927_wait_enter_standby(haptics);
 	if (err)
@@ -810,18 +811,12 @@ static int aw86224_ram_init(struct aw86927_data *haptics)
 
 	usleep_range(1000, 1500);
 
-	/* set base address for the start of the SRAM waveforms */
-	err = regmap_write(haptics->regmap,
-			   AW86224_BASEADDRH_REG, AW86224_BASEADDRH_VAL);
-	if (err)
-		return err;
-
-	err = regmap_write(haptics->regmap,
-			   AW86224_BASEADDRL_REG, AW86224_BASEADDRL_VAL);
-	if (err)
-		return err;
-
-	/* set start of SRAM, before the data is written it will be the same as the base */
+	/*
+	 * Set the start of SRAM. Do NOT write BASE_ADDR (0x2d/0x2e) here:
+	 * on the AW86224 a BASE_ADDR write between EN_RAMINIT and the data
+	 * writes corrupts the RAM write pointer, leaving SRAM empty. The
+	 * default BASE_ADDR (0x800) already matches the library location.
+	 */
 	err = regmap_write(haptics->regmap,
 			   AW86224_RAMADDRH_REG, AW86224_BASEADDRH_VAL);
 	if (err)
@@ -832,17 +827,37 @@ static int aw86224_ram_init(struct aw86927_data *haptics)
 	if (err)
 		return err;
 
-	/* write waveform header to SRAM */
-	err = regmap_noinc_write(haptics->regmap, AW86224_RAMDATA_REG,
-				 &sram_waveform_header, sizeof(sram_waveform_header));
+	/*
+	 * Write waveform library byte-by-byte. The AW86224 RAM port does not
+	 * accept large block writes, only single bytes / small blocks.
+	 */
+	err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+			   ((u8 *)&sram_waveform_header)[0]);
+	if (err)
+		return err;
+	err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+			   ((u8 *)&sram_waveform_header)[1]);
+	if (err)
+		return err;
+	err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+			   ((u8 *)&sram_waveform_header)[2]);
+	if (err)
+		return err;
+	err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+			   ((u8 *)&sram_waveform_header)[3]);
+	if (err)
+		return err;
+	err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+			   ((u8 *)&sram_waveform_header)[4]);
 	if (err)
 		return err;
 
-	/* write waveform to SRAM */
-	err = regmap_noinc_write(haptics->regmap, AW86224_RAMDATA_REG,
-				 aw86927_waveform, ARRAY_SIZE(aw86927_waveform));
-	if (err)
-		return err;
+	for (i = 0; i < ARRAY_SIZE(aw86927_waveform); i++) {
+		err = regmap_write(haptics->regmap, AW86224_RAMDATA_REG,
+				   aw86927_waveform[i]);
+		if (err)
+			return err;
+	}
 
 	/* disable SRAM init */
 	err = regmap_update_bits(haptics->regmap,
