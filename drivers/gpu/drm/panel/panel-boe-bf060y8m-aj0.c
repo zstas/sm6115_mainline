@@ -168,7 +168,12 @@ static int boe_bf060y8m_aj0_unprepare(struct drm_panel *panel)
 }
 
 static const struct drm_display_mode boe_bf060y8m_aj0_mode = {
-	.clock = 165268,
+	/*
+	 * 1236 x 2192 total at exactly 60 Hz, like the stock mode (stock reports
+	 * fps=60). 165268 kHz made it 61.00 Hz; a refresh rate that is not the
+	 * one the touch controller is tuned for can beat against its scan.
+	 */
+	.clock = 162559,
 	.hdisplay = 1080,
 	.hsync_start = 1080 + 36,
 	.hsync_end = 1080 + 36 + 24,
@@ -345,8 +350,12 @@ static int boe_bf060y8m_aj0_probe(struct mipi_dsi_device *dsi)
 
 	dsi->lanes = 4;
 	dsi->format = MIPI_DSI_FMT_RGB888;
-	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_NO_EOT_PACKET |
-			  MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
+	/*
+	 * Link settings as in the stock panel node: non-burst with sync events
+	 * (not sync pulses; no VIDEO_SYNC_PULSE flag) and EOT packets appended
+	 * (qcom,mdss-dsi-tx-eot-append; no NO_EOT_PACKET flag).
+	 */
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO |
 			  MIPI_DSI_CLOCK_NON_CONTINUOUS |
 			  MIPI_DSI_MODE_LPM;
 
