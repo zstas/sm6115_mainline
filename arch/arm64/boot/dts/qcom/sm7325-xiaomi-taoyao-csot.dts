@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (c) 2025, Stanislav Zaikin <zstaseg@gmail.com>
+ */
+
+/dts-v1/;
+
+#include "sm7325-xiaomi-taoyao-common.dtsi"
+
+/ {
+	model = "Xiaomi 12 Lite 5G (CSOT)";
+	compatible = "xiaomi,taoyao", "qcom,sm7325";
+};
+
+&panel {
+	compatible = "csot,nt37701-taoyao";
+	status = "okay";
+};
+
+&spi13 {
+	touchscreen@0 {
+		compatible = "goodix,gt9916";
+		reg = <0>;
+
+		interrupts-extended = <&tlmm 81 IRQ_TYPE_LEVEL_LOW>;
+
+		reset-gpios = <&tlmm 105 GPIO_ACTIVE_LOW>;
+
+		avdd-supply = <&vreg_l7c_3p0>;
+		vddio-supply = <&vreg_l2c_1p8>;
+
+		spi-max-frequency = <5000000>;
+
+		touchscreen-size-x = <10800>;
+		touchscreen-size-y = <24000>;
+
+		pinctrl-0 = <&ts_irq>, <&ts_reset>;
+		pinctrl-names = "default";
+	};
+};

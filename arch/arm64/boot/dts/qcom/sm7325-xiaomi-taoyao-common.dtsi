@@ -3,8 +3,6 @@
  * Copyright (c) 2025, Stanislav Zaikin <zstaseg@gmail.com>
  */
 
-/dts-v1/;
-
 /* PM7250B is configured to use SID8/9 */
 #define PM7250B_SID 8
 #define PM7250B_SID1 9
@@ -31,8 +29,6 @@
 /delete-node/ &rmtfs_mem;
 
 / {
-	model = "Xiaomi 12 Lite 5G";
-	compatible = "xiaomi,taoyao", "qcom,sm7325";
 	chassis-type = "handset";
 
 	aliases {
@@ -53,7 +49,13 @@
 			stride = <(1080 * 4)>;
 			format = "a8r8g8b8";
 
-			clocks = <&gcc GCC_DISP_HF_AXI_CLK>;
+			clocks = <&gcc GCC_DISP_HF_AXI_CLK>,
+				 <&dispcc DISP_CC_MDSS_MDP_CLK>,
+				 <&dispcc DISP_CC_MDSS_BYTE0_CLK>,
+				 <&dispcc DISP_CC_MDSS_BYTE0_INTF_CLK>,
+				 <&dispcc DISP_CC_MDSS_PCLK0_CLK>,
+				 <&dispcc DISP_CC_MDSS_VSYNC_CLK>;
+			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>;
 		};
 	};
 
@@ -580,10 +582,6 @@
 	};
 };
 
-&dispcc {
-	status = "disabled";
-};
-
 &gcc {
 	protected-clocks = <GCC_CFG_NOC_LPASS_CLK>,
 			   <GCC_MSS_CFG_AHB_CLK>,
@@ -647,6 +645,49 @@
 &lpass_audiocc {
 	compatible = "qcom,qcm6490-lpassaudiocc";
 	/delete-property/ power-domains;
+};
+
+&mdss {
+	status = "okay";
+};
+
+&mdss_dsi {
+	vdda-supply = <&vreg_l6b_1p2>;
+
+	status = "okay";
+
+	panel: panel@0 {
+		reg = <0>;
+
+		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+
+		vdd-supply = <&vreg_l13c_3p0>;
+		vddio-supply = <&vreg_l12c_1p8>;
+		dvdd-supply = <&vreg_oled_dvdd>;
+
+		pinctrl-0 = <&sde_dsi_active>, <&sde_te_active_sleep>;
+		pinctrl-1 = <&sde_dsi_sleep>, <&sde_te_active_sleep>;
+		pinctrl-names = "default", "sleep";
+
+		status = "disabled";
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mdss_dsi0_out>;
+			};
+		};
+	};
+};
+
+&mdss_dsi0_out {
+	data-lanes = <0 1 2 3>;
+	remote-endpoint = <&panel_in>;
+};
+
+&mdss_dsi_phy {
+	vdds-supply = <&vreg_l10c_0p88>;
+
+	status = "okay";
 };
 
 &pm7325_gpios {
@@ -717,26 +758,6 @@
 
 &spi13 {
 	status = "okay";
-
-	touchscreen@0 {
-		compatible = "goodix,gt9916";
-		reg = <0>;
-
-		interrupts-extended = <&tlmm 81 IRQ_TYPE_LEVEL_LOW>;
-
-		reset-gpios = <&tlmm 105 GPIO_ACTIVE_LOW>;
-
-		avdd-supply = <&vreg_l7c_3p0>;
-		vddio-supply = <&vreg_l2c_1p8>;
-
-		spi-max-frequency = <5000000>;
-
-		touchscreen-size-x = <10800>;
-		touchscreen-size-y = <24000>;
-
-		pinctrl-0 = <&ts_irq>, <&ts_reset>;
-		pinctrl-names = "default";
-	};
 };
 
 &tlmm {
