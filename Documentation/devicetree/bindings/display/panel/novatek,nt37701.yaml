@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/display/panel/novatek,nt37701.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Novatek NT37701 based DSI panels
+
+maintainers:
+  - Stanislav Zaikin <zstaseg@gmail.com>
+
+description: |
+  Command mode AMOLED panels based on the Novatek NT37701 display controller,
+  found in the Motorola Edge 30 (dubai) and Xiaomi 12 Lite 5G (taoyao).
+
+allOf:
+  - $ref: panel-common.yaml#
+
+properties:
+  compatible:
+    enum:
+      - csot,nt37701-dubai
+      - csot,nt37701-taoyao
+      - tianma,nt37701-dubai
+      - tianma,nt37701-taoyao
+
+  reg:
+    maxItems: 1
+    description: DSI virtual channel
+
+  vdd-supply: true
+  vddio-supply: true
+  dvdd-supply: true
+  power-supply: true
+  reset-gpios: true
+  port: true
+
+  pinctrl-0: true
+  pinctrl-1: true
+  pinctrl-names: true
+
+required:
+  - compatible
+  - reg
+  - reset-gpios
+  - port
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/gpio/gpio.h>
+
+    dsi {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        panel@0 {
+            compatible = "csot,nt37701-taoyao";
+            reg = <0>;
+
+            vdd-supply = <&vreg_l13c_3p0>;
+            vddio-supply = <&vreg_l12c_1p8>;
+            dvdd-supply = <&vreg_oled_dvdd>;
+
+            reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+
+            port {
+                endpoint {
+                    remote-endpoint = <&mdss_dsi0_out>;
+                };
+            };
+        };
+    };
+...
