@@ -973,6 +973,9 @@
 };
 
 &ufs_mem_hc {
+	/* TEST: disable UFS inline crypto to isolate the 7.3 ICE boot hang */
+	/delete-property/ qcom,ice;
+
 	reset-gpios = <&tlmm 175 GPIO_ACTIVE_LOW>;
 
 	vcc-supply = <&vreg_l7b_2p96>;
