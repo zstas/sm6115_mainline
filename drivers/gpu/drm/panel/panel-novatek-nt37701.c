@@ -435,8 +435,6 @@ static int taoyao_csot_panel_on(struct nt37701_panel *ctx, int mode)
 {
 	struct mipi_dsi_multi_context dsi_ctx = { .dsi = ctx->dsi };
 
-	(void)mode;
-
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
 				     0x55, 0xaa, 0x52, 0x08, 0x08);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xe9, 0x00, 0x00, 0x00, 0x16);
@@ -492,12 +490,21 @@ static int taoyao_csot_panel_on(struct nt37701_panel *ctx, int mode)
 				     0x55, 0xaa, 0x52, 0x08, 0x01);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc3,
 				     0x94, 0x01, 0x8c, 0xd0, 0x22, 0x02, 0x00);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x2f, 0x02);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x5f, 0x01);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
-				     0x55, 0xaa, 0x52, 0x08, 0x00);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x09);
-	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x00);
+	if (mode == 1) {
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x2f, 0x03);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x5f, 0x01);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
+					     0x55, 0xaa, 0x52, 0x08, 0x00);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x0a);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x20);
+	} else {
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x2f, 0x02);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x5f, 0x01);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
+					     0x55, 0xaa, 0x52, 0x08, 0x00);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0x6f, 0x09);
+		mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xc0, 0x00);
+	}
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xf0,
 				     0x55, 0xaa, 0x52, 0x08, 0x02);
 	mipi_dsi_dcs_write_seq_multi(&dsi_ctx, 0xcc, 0x30);
