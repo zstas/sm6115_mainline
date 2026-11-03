@@ -3,8 +3,6 @@
  * Copyright (c) 2025, Stanislav Zaikin <zstaseg@gmail.com>
  */
 
-/dts-v1/;
-
 /* PM7250B is configured to use SID8/9 */
 #define PM7250B_SID 8
 #define PM7250B_SID1 9
@@ -31,8 +29,6 @@
 /delete-node/ &rmtfs_mem;
 
 / {
-	model = "Xiaomi 12 Lite 5G";
-	compatible = "xiaomi,taoyao", "qcom,sm7325";
 	chassis-type = "handset";
 
 	aliases {
