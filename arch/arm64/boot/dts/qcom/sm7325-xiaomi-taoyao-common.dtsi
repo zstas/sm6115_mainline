@@ -1523,4 +1523,34 @@
 		bias-disable;
 		drive-strength = <2>;
 	};
+
+	aw86224_reset_default: aw86224-reset-default-state {
+		pins = "gpio35";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-disable;
+	};
+
+	aw86224_int_default: aw86224-int-default-state {
+		pins = "gpio18";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-up;
+		input-enable;
+	};
+};
+
+&i2c9 {
+	status = "okay";
+
+	haptics@58 {
+		compatible = "awinic,aw86224";
+		reg = <0x58>;
+
+		interrupts-extended = <&tlmm 18 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&tlmm 35 GPIO_ACTIVE_LOW>;
+
+		pinctrl-0 = <&aw86224_reset_default>, <&aw86224_int_default>;
+		pinctrl-names = "default";
+	};
 };
