@@ -16,6 +16,7 @@
 #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
 #include <dt-bindings/sound/qcom,q6afe.h>
 #include <dt-bindings/sound/qcom,q6asm.h>
+#include <dt-bindings/sound/qcom,q6voice.h>
 
 #include "sm7325.dtsi"
 #include "pm7325.dtsi"
@@ -103,6 +104,37 @@
 				};
 			};
 		};
+	};
+
+	wcd9375: audio-codec {
+		compatible = "qcom,wcd9375-codec";
+
+		pinctrl-0 = <&wcd_reset_n>;
+		pinctrl-1 = <&wcd_reset_n_sleep>;
+		pinctrl-names = "default", "sleep";
+
+		reset-gpios = <&tlmm 83 GPIO_ACTIVE_LOW>;
+
+		vdd-rxtx-supply = <&vreg_l18b_1p8>;
+		vdd-io-supply = <&vreg_l18b_1p8>;
+		vdd-buck-supply = <&vreg_l17b_1p8>;
+		vdd-mic-bias-supply = <&vreg_bob>;
+		vdd-px-supply = <&vreg_l18b_1p8>;
+
+		qcom,micbias1-microvolt = <2750000>;
+		qcom,micbias2-microvolt = <2750000>;
+		qcom,micbias3-microvolt = <2750000>;
+		qcom,micbias4-microvolt = <2750000>;
+
+		qcom,mbhc-buttons-vthreshold-microvolt = <75000 150000 237000 500000 500000
+							  500000 500000 500000>;
+		qcom,mbhc-headset-vthreshold-microvolt = <1700000>;
+		qcom,mbhc-headphone-vthreshold-microvolt = <50000>;
+
+		qcom,rx-device = <&wcd937x_rx>;
+		qcom,tx-device = <&wcd937x_tx>;
+
+		#sound-dai-cells = <1>;
 	};
 
 	vreg_oled_dvdd: regulator-oled-dvdd {
@@ -795,11 +827,27 @@
 	pinctrl-names = "default",
 			"sleep";
 
+	audio-routing = "AMIC1", "MIC BIAS1",
+			"AMIC2", "MIC BIAS2",
+			"AMIC3", "MIC BIAS3",
+			"AMIC4", "MIC BIAS3",
+			"TX SWR_INPUT0", "ADC1_OUTPUT",
+			"TX SWR_INPUT4", "ADC2_OUTPUT",
+			"TX SWR_INPUT5", "ADC3_OUTPUT";
+
 	mm1-dai-link {
 		link-name = "MultiMedia1";
 
 		cpu {
 			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA1>;
+		};
+	};
+
+	mm2-dai-link {
+		link-name = "MultiMedia2";
+
+		cpu {
+			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA2>;
 		};
 	};
 
@@ -817,6 +865,127 @@
 		platform {
 			sound-dai = <&q6routing>;
 		};
+	};
+
+	wcd-capture-dai-link {
+		link-name = "WCD Capture";
+
+		codec {
+			sound-dai = <&wcd9375 1>, <&swr1 0>, <&lpass_tx_macro 0>;
+		};
+
+		cpu {
+			sound-dai = <&q6afedai TX_CODEC_DMA_TX_3>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+	};
+
+	voicemmode1-dai-link {
+		link-name = "VoiceMMode1";
+
+		cpu {
+			sound-dai = <&q6voicedai VOICEMMODE1>;
+		};
+	};
+};
+
+&lpass_rx_macro {
+	status = "okay";
+};
+
+&lpass_tx_macro {
+	compatible = "qcom,sm7325-lpass-tx-macro",
+		     "qcom,sm8450-lpass-tx-macro";
+
+	pinctrl-0 = <&lpass_tx_swr_clk>, <&tx_swr_data01>;
+
+	status = "okay";
+};
+
+&lpass_va_macro {
+	vdd-micb-supply = <&vreg_bob>;
+
+	/* No DMIC used on taoyao */
+	qcom,dmic-sample-rate = <4800000>;
+
+	status = "okay";
+};
+
+&q6cvp {
+	status = "okay";
+};
+
+&q6cvs {
+	status = "okay";
+};
+
+&q6mvm {
+	status = "okay";
+};
+
+&q6voicedai {
+	dai@1 {
+		reg = <VOICEMMODE1>;
+	};
+};
+
+&swr0 {
+	status = "okay";
+
+	wcd937x_rx: codec@0,4 {
+		compatible = "sdw20217010a00";
+		reg = <0 4>;
+
+		qcom,rx-port-mapping = <1 2 3 4 5>;
+		qcom,rx-channel-mapping = /bits/ 8 <1 2 1 1 2 1 1 2>;
+	};
+};
+
+&swr1 {
+	status = "okay";
+
+	qcom,ports-lane-control = /bits/ 8 <0x00 0x01 0x00>;
+
+	wcd937x_tx: codec@0,3 {
+		compatible = "sdw20217010a00";
+		reg = <0 3>;
+
+		/*
+		 * WCD9375 TX Port 1 (ADC1)               <=> SWR2 Port 1
+		 * WCD9375 TX Port 2 (ADC2, 3)            <=> SWR2 Port 2
+		 * WCD9375 TX Port 3 (DMIC0,1,2,3 & MBHC) <=> SWR2 Port 2
+		 * WCD9375 TX Port 4 (DMIC4,5,6,7)        <=> SWR2 Port 3
+		 */
+		qcom,tx-port-mapping = <1 2 2 3>;
+		qcom,tx-channel-mapping = /bits/ 8 <1 1 2 4 1 2 3 4 1 2 3 4>;
+	};
+};
+
+&lpass_tlmm {
+	tx_swr_data01: tx-swr-data01-state {
+		pins = "gpio1", "gpio2";
+		function = "swr_tx_data";
+		drive-strength = <2>;
+		slew-rate = <1>;
+		bias-bus-hold;
+	};
+};
+
+&tlmm {
+	wcd_reset_n: wcd-reset-n-state {
+		pins = "gpio83";
+		function = "gpio";
+		drive-strength = <16>;
+	};
+
+	wcd_reset_n_sleep: wcd-reset-n-sleep-state {
+		pins = "gpio83";
+		function = "gpio";
+		drive-strength = <16>;
+		bias-disable;
 	};
 };
 
