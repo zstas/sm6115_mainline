@@ -660,6 +660,64 @@
 			};
 		};
 	};
+
+	pm8008: pmic@8 {
+		compatible = "qcom,pm8008";
+		reg = <0x8>;
+
+		reset-gpios = <&pm8350c_gpios 3 GPIO_ACTIVE_LOW>;
+
+		pinctrl-0 = <&pm8008i_default>;
+		pinctrl-names = "default";
+
+		vdd-l1-l2-supply = <&vreg_s8b_1p256>;
+		vdd-l3-l4-supply = <&vreg_bob>;
+		vdd-l5-supply = <&vreg_s1b_1p856>;
+		vdd-l6-supply = <&vreg_s1b_1p856>;
+		vdd-l7-supply = <&vreg_bob>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-ranges = <&pm8008 0 0 2>;
+
+		interrupt-controller;
+		#interrupt-cells = <2>;
+
+		#thermal-sensor-cells = <0>;
+
+		regulators {
+			vreg_l2i: ldo2 {
+				regulator-name = "vreg_l2i";
+				regulator-min-microvolt = <1200000>;
+				regulator-max-microvolt = <1200000>;
+			};
+
+			vreg_l4i: ldo4 {
+				regulator-name = "vreg_l4i";
+				regulator-min-microvolt = <2800000>;
+				regulator-max-microvolt = <2800000>;
+			};
+
+			vreg_l5i: ldo5 {
+				regulator-name = "vreg_l5i";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+			};
+
+			vreg_l6i: ldo6 {
+				regulator-name = "vreg_l6i";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-always-on;
+			};
+
+			vreg_l7i: ldo7 {
+				regulator-name = "vreg_l7i";
+				regulator-min-microvolt = <2800000>;
+				regulator-max-microvolt = <2800000>;
+			};
+		};
+	};
 };
 
 &i2c3 {
@@ -1395,5 +1453,74 @@
 				type = "passive";
 			};
 		};
+	};
+};
+
+&pm8350c_gpios {
+	pm8008i_default: pm8008i-default-state {
+		pins = "gpio3";
+		function = "normal";
+		bias-disable;
+		power-source = <0>;
+	};
+
+};
+
+&camss {
+	vdda-phy-supply = <&vreg_l10c_0p88>;
+	vdda-pll-supply = <&vreg_l6b_1p2>;
+
+	status = "okay";
+
+	ports {
+		port@3 {
+			csiphy3_ep: endpoint {
+				data-lanes = <0 1 2 3>;
+				remote-endpoint = <&camera_imx355_ep>;
+			};
+		};
+	};
+};
+
+&cci1 {
+	status = "okay";
+};
+
+&cci1_i2c1 {
+	imx355: camera@1a {
+		compatible = "sony,imx355";
+		reg = <0x1a>;
+
+		assigned-clocks = <&camcc CAM_CC_MCLK3_CLK>;
+		assigned-clock-rates = <19200000>;
+		clocks = <&camcc CAM_CC_MCLK3_CLK>;
+
+		avdd-supply = <&vreg_l4i>;
+		dvdd-supply = <&vreg_l2i>;
+		dovdd-supply = <&vreg_l5i>;
+
+		reset-gpios = <&tlmm 78 GPIO_ACTIVE_LOW>;
+		pinctrl-0 = <&cam_mclk3_default>, <&cam_reset_ultra_default>;
+		pinctrl-names = "default";
+
+		orientation = <1>;
+		rotation = <90>;
+
+		port {
+			camera_imx355_ep: endpoint {
+				data-lanes = <1 2 3 4>;
+				link-frequencies = /bits/ 64 <360000000>;
+				remote-endpoint = <&csiphy3_ep>;
+			};
+		};
+	};
+};
+
+&tlmm {
+	cam_reset_ultra_default: cam-reset-ultra-default-state {
+		pins = "gpio78";
+		function = "gpio";
+		bias-disable;
+		drive-strength = <2>;
 	};
 };
