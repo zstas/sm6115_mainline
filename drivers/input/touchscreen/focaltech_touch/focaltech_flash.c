@@ -16,7 +16,7 @@
 #include "focaltech_core.h"
 #include "focaltech_flash.h"
 
-#define FTS_FW_REQUEST_SUPPORT		0
+#define FTS_FW_REQUEST_SUPPORT		1
 /* Example: focaltech_ts_fw_tianma.bin */
 #define FTS_FW_NAME_PREX_WITH_REQUEST	"focaltech_ts_fw_"
 #define FTS_READ_BOOT_ID_TIMEOUT	3
@@ -1074,9 +1074,14 @@ static int fts_get_fw_file_via_request_firmware(struct fts_upgrade *upg)
 	const struct firmware *fw = NULL;
 	u8 *tmpbuf = NULL;
 	char fwname[FILE_NAME_LENGTH] = { 0 };
+	const char *fw_name = upg->ts_data->pdata->fw_name;
 
-	snprintf(fwname, FILE_NAME_LENGTH, "%s%s.bin",
-		 FTS_FW_NAME_PREX_WITH_REQUEST, upg->module_info->vendor_name);
+	if (fw_name)
+		snprintf(fwname, FILE_NAME_LENGTH, "%s", fw_name);
+	else
+		snprintf(fwname, FILE_NAME_LENGTH, "%s%s.bin",
+			 FTS_FW_NAME_PREX_WITH_REQUEST,
+			 upg->module_info->vendor_name);
 
 	ret = request_firmware(&fw, fwname, upg->ts_data->dev);
 	if (0 == ret) {
@@ -1148,12 +1153,19 @@ static int fts_fwupg_get_fw_file(struct fts_upgrade *upg)
 		return ret;
 	}
 
-	if (FTS_FW_REQUEST_SUPPORT) {
+	if (upg->ts_data->pdata->fw_name) {
+		ret = fts_get_fw_file_via_request_firmware(upg);
+		if (ret) {
+			dev_err(fts_data->dev,
+				"firmware %s is unavailable, not upgrading",
+				upg->ts_data->pdata->fw_name);
+			return ret;
+		}
+	} else if (FTS_FW_REQUEST_SUPPORT) {
 		msleep(500);
 		ret = fts_get_fw_file_via_request_firmware(upg);
-		if (ret != 0) {
+		if (ret != 0)
 			get_fw_i_flag = true;
-		}
 	} else {
 		get_fw_i_flag = true;
 	}

@@ -30,6 +30,8 @@
 		focaltech,irq-gpios = <&tlmm 81 GPIO_ACTIVE_LOW>;
 		focaltech,display-coords = <0 0 10800 24000>;
 		focaltech,max-touch-number = <10>;
+		focaltech,firmware-name = "focaltech_ts_fw.bin";
+		focaltech,high-res-coords;
 
 		vdd-supply = <&vreg_l7c_3p0>;
 		iovdd-supply = <&vreg_l2c_1p8>;

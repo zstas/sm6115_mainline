@@ -601,14 +601,41 @@ static int fts_irq_read_report(struct fts_ts_data *ts_data)
 			events[i].id = pointid;
 			events[i].flag = touch_buf[FTS_TOUCH_OFF_E_XH + base] >>
 					 6;
-			events[i].x =
-				((touch_buf[FTS_TOUCH_OFF_E_XH + base] & 0x0F)
-				 << 8) +
-				(touch_buf[FTS_TOUCH_OFF_XL + base] & 0xFF);
-			events[i].y =
-				((touch_buf[FTS_TOUCH_OFF_ID_YH + base] & 0x0F)
-				 << 8) +
-				(touch_buf[FTS_TOUCH_OFF_YL + base] & 0xFF);
+			if (ts_data->pdata->high_res_coords) {
+				/*
+				 * Some firmwares (e.g. the stock taoyao one)
+				 * report the default frames with 15-bit
+				 * coordinates.  The three low bits of both
+				 * axes are packed into the pressure byte,
+				 * as the downstream focaltech_3680 driver
+				 * (Focaltech V3.3) does.
+				 */
+				events[i].x =
+					((touch_buf[FTS_TOUCH_OFF_E_XH + base] &
+					  0x0F) << 11) +
+					((touch_buf[FTS_TOUCH_OFF_XL + base] &
+					  0xFF) << 3) +
+					(touch_buf[FTS_TOUCH_OFF_PRE + base] >>
+					 5);
+				events[i].y =
+					((touch_buf[FTS_TOUCH_OFF_ID_YH + base] &
+					  0x0F) << 11) +
+					((touch_buf[FTS_TOUCH_OFF_YL + base] &
+					  0xFF) << 3) +
+					((touch_buf[FTS_TOUCH_OFF_PRE + base] &
+					  0x1C) >> 2);
+			} else {
+				events[i].x =
+					((touch_buf[FTS_TOUCH_OFF_E_XH + base] &
+					  0x0F) << 8) +
+					(touch_buf[FTS_TOUCH_OFF_XL + base] &
+					 0xFF);
+				events[i].y =
+					((touch_buf[FTS_TOUCH_OFF_ID_YH + base] &
+					  0x0F) << 8) +
+					(touch_buf[FTS_TOUCH_OFF_YL + base] &
+					 0xFF);
+			}
 			events[i].p = touch_buf[FTS_TOUCH_OFF_PRE + base];
 			events[i].area = touch_buf[FTS_TOUCH_OFF_AREA + base];
 			if (events[i].p <= 0)
@@ -1024,8 +1051,17 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
 			pdata->max_touch_number = temp_val;
 	}
 
+	pdata->high_res_coords = of_property_read_bool(np,
+						"focaltech,high-res-coords");
+	ret = of_property_read_string(np, "focaltech,firmware-name",
+				      &pdata->fw_name);
+	if (ret < 0)
+		pdata->fw_name = NULL;
+
 	dev_info(dev, "max touch number:%d",
 		 pdata->max_touch_number);
+	if (pdata->fw_name)
+		dev_info(dev, "firmware name: %s", pdata->fw_name);
 
 	return 0;
 }
