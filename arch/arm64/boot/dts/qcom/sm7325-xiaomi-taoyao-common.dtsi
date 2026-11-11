@@ -1165,6 +1165,16 @@
 	status = "okay";
 };
 
+&spi15 {
+	status = "okay";
+
+	irled@0 {
+		compatible = "ir-spi-led";
+		reg = <0>;
+		spi-max-frequency = <19200000>;
+	};
+};
+
 &tlmm {
 	/*
 	 * 48-51: presumably NFC SE
