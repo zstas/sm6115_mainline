@@ -730,6 +730,7 @@
 			     "nxp,tfa9872";
 		reg = <0x34>;
 		reset-gpio = <&tlmm 2 GPIO_ACTIVE_HIGH>;
+		spk-sw-gpios = <&tlmm 101 GPIO_ACTIVE_HIGH>;
 		sound-name-prefix = "Speaker Left";
 		#sound-dai-cells = <1>;
 		sound-channel = <0>;
